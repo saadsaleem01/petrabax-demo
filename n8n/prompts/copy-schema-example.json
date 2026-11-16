@@ -1,0 +1,13 @@
+{
+  "facebook_en": "text", "facebook_es": "text",
+  "instagram_en": "text", "instagram_es": "text",
+  "linkedin_en": "text", "linkedin_es": "text",
+  "email_subject_en": "text", "email_subject_es": "text",
+  "email_preview_en": "text", "email_preview_es": "text",
+  "email_headline_en": "text", "email_headline_es": "text",
+  "email_body_en": "text", "email_body_es": "text",
+  "graphic_headline_en": "text", "graphic_headline_es": "text",
+  "graphic_subline_en": "text", "graphic_subline_es": "text",
+  "carousel_en": [{ "title": "text", "text": "text" }],
+  "carousel_es": [{ "title": "text", "text": "text" }]
+}
