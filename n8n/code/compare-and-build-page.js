@@ -2,7 +2,9 @@
 // Detects supplier corrections by comparing against the last saved version of the same promo,
 // then builds the result page shown to the employee.
 const v = $('Validate Offer Against Source').first().json;
-const prev = $input.all().map((i) => i.json).find((r) => r && r.offer_json) || null;
+// Previous version comes from Airtable (Promotions table, matched on Promo key)
+const prevRec = $input.all().flatMap((i) => i.json.records || []).find((r) => r.fields && r.fields['Offer JSON']);
+const prev = prevRec ? { version: prevRec.fields['Version'], offer_json: prevRec.fields['Offer JSON'] } : null;
 const f = v.facts || {};
 const cf = v.customer_facts || {};
 
@@ -47,7 +49,7 @@ if (prev) {
   if ((old.currency || '') !== (f.currency || '')) changes.push('Currency: ' + (old.currency || 'none') + ' → ' + (f.currency || 'none'));
 
   // Discounts compared by amount (wording varies between AI runs)
-  const amt = (d) => String(d.amount || '').replace(/[\s,]/g, '').toLowerCase();
+  const amt = (d) => { const a = String(d.amount || ''); const n = (a.match(/\d[\d.,]*/) || [''])[0].replace(/,/g, ''); return n + (/%/.test(a) ? '%' : ''); };
   const oldDisc = (old.discounts || []).map(amt);
   const newDisc = (f.discounts || []).map(amt);
   (f.discounts || []).filter((d) => !oldDisc.includes(amt(d))).forEach((d) => changes.push('Discount added/changed: ' + d.amount + ' - ' + d.description));
@@ -108,7 +110,7 @@ if (com.rate) {
 }
 html += h3('Safeguard checks (' + v.checks.filter((x) => x.status === 'ok').length + '/' + v.checks.length + ' passed)');
 html += '<ul style="font-size:12px;columns:2;list-style:none;padding:0">' + v.checks.map((x) => '<li style="margin:2px 0">' + (x.status === 'ok' ? '✅' : x.status === 'red' ? '⛔' : '⚠️') + ' ' + esc(x.label) + '</li>').join('') + '</ul>';
-html += '<p style="color:#666;font-size:12px;margin-top:18px">Saved to Petrabax Promotions · ' + esc(v.source_type) + ' · ' + esc(v.today) + '</p></div>';
+html += '<p style="color:#666;font-size:12px;margin-top:18px">Saved to Airtable · ' + esc(v.source_type) + ' · ' + esc(v.today) + '</p></div>';
 
 return [{
   json: {

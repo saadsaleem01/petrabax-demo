@@ -156,6 +156,8 @@ const promoTiers = tiers.filter((t) => (t.price_type || 'promo') === 'promo' && 
 const priceFrom = promoTiers.length ? Math.min(...promoTiers.map((t) => Number(t.price))) : 0;
 
 const slug = (s) => norm(s)
+  .replace(/\([^)]*\)/g, ' ')
+  .replace(/\b\d+\s*(days?|nights?|d[ií]as?|noches?)\b/g, ' ')
   .replace(/\b(early booking|special offer|promo(tion)?|correction|updated?|flash sale|offer|20\d\d)\b/g, ' ')
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/^-+|-+$/g, '');
