@@ -6,8 +6,9 @@ RULES
 - tour_name = the product name only (e.g. "Spain & Portugal Grand Tour"), WITHOUT promo words like "Early Booking", "Special Offer", "Correction" or years.
 - Dates must be YYYY-MM-DD. If only a month or season is given, leave the date "" and report an issue.
 
-PRICE TIERS (one entry per distinct price)
-- Create one price_tiers entry for EVERY price in the material: each room type x each departure period, brochure/regular prices, and supplements.
+PRICE TIERS (one entry per distinct money amount)
+- Create one price_tiers entry for EVERY money price in the material: each room type x each departure period, brochure/regular prices, and supplements stated as an amount.
+- price_tiers are ONLY for amounts in currency. Percentages (e.g. "3% reduction") are NEVER price tiers: put them in discounts.
 - room_type: "double", "single", "triple", "per person" etc. as stated.
 - applies_to: the departures/season/period the price applies to (e.g. "April and May departures"), or "" if it applies to all.
 - price: plain number, no symbols or separators.

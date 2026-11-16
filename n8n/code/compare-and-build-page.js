@@ -20,13 +20,23 @@ if (prev) {
   let old = {};
   try { old = JSON.parse(prev.offer_json); } catch (e) { old = {}; }
 
-  const oldT = {}; (old.price_tiers || []).forEach((t) => { oldT[tierKey(t)] = t; });
-  const newT = {}; (f.price_tiers || []).forEach((t) => { newT[tierKey(t)] = t; });
-  for (const k of Object.keys(newT)) {
-    if (!oldT[k]) changes.push('New price: ' + tierName(newT[k]) + ' ' + money(newT[k].price));
-    else if (Number(oldT[k].price) !== Number(newT[k].price)) changes.push('Price changed: ' + tierName(newT[k]) + ' ' + money(oldT[k].price) + ' → ' + money(newT[k].price));
+  // Match tiers: exact key first, then by room type + price type when the AI reworded "applies_to"
+  const baseKey = (t) => [t.room_type, t.price_type || 'promo'].map((x) => String(x || '').toLowerCase().trim()).join(' | ');
+  const oldList = (old.price_tiers || []).slice();
+  const newList = (f.price_tiers || []).slice();
+  const pairs = [];
+  for (const n of newList.slice()) {
+    const i = oldList.findIndex((o) => tierKey(o) === tierKey(n));
+    if (i >= 0) { pairs.push([oldList[i], n]); oldList.splice(i, 1); newList.splice(newList.indexOf(n), 1); }
   }
-  for (const k of Object.keys(oldT)) if (!newT[k]) changes.push('Price removed: ' + tierName(oldT[k]) + ' ' + money(oldT[k].price));
+  for (const n of newList.slice()) {
+    const sameOld = oldList.filter((o) => baseKey(o) === baseKey(n));
+    const sameNew = newList.filter((x) => baseKey(x) === baseKey(n));
+    if (sameOld.length === 1 && sameNew.length === 1) { pairs.push([sameOld[0], n]); oldList.splice(oldList.indexOf(sameOld[0]), 1); newList.splice(newList.indexOf(n), 1); }
+  }
+  pairs.forEach((p) => { if (Number(p[0].price) !== Number(p[1].price)) changes.push('Price changed: ' + tierName(p[1]) + ' ' + money(p[0].price) + ' → ' + money(p[1].price)); });
+  newList.forEach((t) => changes.push('New price: ' + tierName(t) + ' ' + money(t.price)));
+  oldList.forEach((t) => changes.push('Price removed: ' + tierName(t) + ' ' + money(t.price)));
 
   const oldD = (old.departures || []).map((d) => d.date).filter(Boolean);
   const newD = (f.departures || []).map((d) => d.date).filter(Boolean);
@@ -36,10 +46,12 @@ if (prev) {
   if ((old.booking_deadline || '') !== (f.booking_deadline || '')) changes.push('Booking deadline: ' + (old.booking_deadline || 'none') + ' → ' + (f.booking_deadline || 'none'));
   if ((old.currency || '') !== (f.currency || '')) changes.push('Currency: ' + (old.currency || 'none') + ' → ' + (f.currency || 'none'));
 
-  const oldDisc = (old.discounts || []).map((d) => String(d.description || '').toLowerCase());
-  const newDisc = (f.discounts || []).map((d) => String(d.description || '').toLowerCase());
-  newDisc.filter((d) => !oldDisc.includes(d)).forEach((d) => changes.push('Discount added/changed: ' + d));
-  oldDisc.filter((d) => !newDisc.includes(d)).forEach((d) => changes.push('Discount removed: ' + d));
+  // Discounts compared by amount (wording varies between AI runs)
+  const amt = (d) => String(d.amount || '').replace(/[\s,]/g, '').toLowerCase();
+  const oldDisc = (old.discounts || []).map(amt);
+  const newDisc = (f.discounts || []).map(amt);
+  (f.discounts || []).filter((d) => !oldDisc.includes(amt(d))).forEach((d) => changes.push('Discount added/changed: ' + d.amount + ' - ' + d.description));
+  (old.discounts || []).filter((d) => !newDisc.includes(amt(d))).forEach((d) => changes.push('Discount removed: ' + d.amount + ' - ' + d.description));
 
   if (changes.length) {
     yellow.unshift('Supplier correction: ' + changes.length + ' change(s) vs version ' + (version - 1) + '. All content for this promo must be re-approved, and anything already scheduled is pulled from the queue.');
