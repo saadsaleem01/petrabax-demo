@@ -20,6 +20,8 @@ jobs.forEach((j, k) => {
 });
 const att = (urls, name) => urls.filter(Boolean).map((u, n, a) => ({ url: u + '.png', filename: name + (a.length > 1 ? '-' + (n + 1) : '') + '.png' }));
 const NL = String.fromCharCode(10);
+// Same fingerprint as the Rebuild workflow: lets it skip re-rendering when nothing changed
+const hashOf = (v) => { const s = JSON.stringify(v); let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; return h.toString(36); };
 const chunk = (arr, n) => { const out = []; for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n)); return out; };
 
 const rows = [];
@@ -29,12 +31,17 @@ built.forEach((b, i) => {
   const warn = b.warnings;
   const warnFor = (k) => warn.filter((w) => w.startsWith(k + '_' + lang) || w.startsWith(k + ':')).join(NL);
   const status = (k) => (warnFor(k) ? 'Needs changes' : 'Ready for review');
-  const base = { 'Language': L, 'Promotion': [p.record_id], 'Headline': copy['graphic_headline_' + lang] || '', 'Subline': copy['graphic_subline_' + lang] || '' };
+  const cfL = b.cf_lang || p.cf;
+  const hl = copy['graphic_headline_' + lang] || '';
+  const sl = copy['graphic_subline_' + lang] || '';
+  const base = { 'Language': L, 'Promotion': [p.record_id], 'Headline': hl, 'Subline': sl, 'Localized facts JSON': JSON.stringify(cfL) };
+  const postHash = hashOf(['post', lang, hl, sl, '', [], cfL.price_from, cfL.booking_deadline]);
+  const carHash = hashOf(['carousel', lang, hl, sl, '', (copy['carousel_' + lang] || []).map((s) => [String(s.title || '').trim(), String(s.text || '').trim()]), cfL.price_from, cfL.booking_deadline]);
   for (const ch of [['facebook', 'Facebook'], ['instagram', 'Instagram'], ['linkedin', 'LinkedIn']]) {
-    rows.push({ fields: { ...base, 'Item': ch[1] + ' ' + L + ' — ' + p.cf.tour_name, 'Channel': ch[1], 'Body': copy[ch[0] + '_' + lang] || '', 'Status': status(ch[0]), 'Fact-check warnings': warnFor(ch[0]), 'Graphic': att([gfx[lang].post], 'petrabax-' + lang + '-post') } });
+    rows.push({ fields: { ...base, 'Item': ch[1] + ' ' + L + ' — ' + p.cf.tour_name, 'Channel': ch[1], 'Body': copy[ch[0] + '_' + lang] || '', 'Status': status(ch[0]), 'Fact-check warnings': warnFor(ch[0]), 'Graphic': att([gfx[lang].post], 'petrabax-' + lang + '-post'), 'Graphic hash': gfx[lang].post ? postHash : '' } });
   }
   const slides = (copy['carousel_' + lang] || []).map((s, n) => 'Slide ' + (n + 1) + ': ' + s.title + NL + s.text).join(NL + NL);
-  rows.push({ fields: { ...base, 'Item': 'Instagram carousel ' + L + ' — ' + p.cf.tour_name, 'Channel': 'Instagram carousel', 'Body': slides, 'Status': status('carousel'), 'Fact-check warnings': warnFor('carousel'), 'Graphic': att(gfx[lang].slides, 'petrabax-' + lang + '-slide') } });
+  rows.push({ fields: { ...base, 'Item': 'Instagram carousel ' + L + ' — ' + p.cf.tour_name, 'Channel': 'Instagram carousel', 'Body': slides, 'Status': status('carousel'), 'Fact-check warnings': warnFor('carousel'), 'Graphic': att(gfx[lang].slides, 'petrabax-' + lang + '-slide'), 'Graphic hash': gfx[lang].slides.filter(Boolean).length === 4 ? carHash : '' } });
   const d = drafts[i] || {};
   const emailWarn = warn.filter((w) => /^email_/.test(w)).join(NL);
   rows.push({ fields: { ...base, 'Item': 'Email ' + L + ' — ' + p.cf.tour_name, 'Channel': 'Email', 'Headline': copy['email_headline_' + lang] || '', 'Email subject': copy['email_subject_' + lang] || '', 'Email preview text': copy['email_preview_' + lang] || '', 'Body': copy['email_body_' + lang] || '', 'Status': emailWarn ? 'Needs changes' : 'Ready for review', 'Fact-check warnings': emailWarn, 'Mailchimp campaign ID': d.id || '', 'Preview link': d.web_id ? 'https://us18.admin.mailchimp.com/campaigns/edit?id=' + d.web_id : null } });

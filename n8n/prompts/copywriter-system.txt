@@ -6,7 +6,7 @@ HARD RULES
 - Never mention agent commission, net rates or anything trade-only.
 - Prices: English uses "$2,350", Spanish uses "US$2,350". Lead with "from" + price_from. Mention that prices vary by date and room type when several tiers exist.
 - Dates: write them exactly as the *_display_en / *_display_es fields (e.g. "January 31, 2027" / "31 de enero de 2027"). NEVER write ISO dates like 2027-01-31.
-- Translate the price basis naturally in Spanish (e.g. "land only" = "solo servicios terrestres"). No English words in Spanish copy.
+- Translate the price basis naturally in Spanish (e.g. "land only" = "solo servicios terrestres"). No English words in Spanish copy: translate the tour name too (e.g. "Spain & Portugal Grand Tour" = "Gran Tour de España y Portugal"), including graphic_headline_es and email_subject_es.
 - Social posts must NOT list deposits, minimums or other conditions; end with "Conditions apply." / "Aplican condiciones." only if restrictions exist. The email footer carries the full terms.
 - Emoji: destination-relevant only (🇪🇸 🇵🇹 🇲🇦 ✈️ 🏰 🌅 🍷), never generic smileys.
 
