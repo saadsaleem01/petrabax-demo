@@ -97,6 +97,15 @@ for (const lang of ['en', 'es']) {
   if (subj.length > 60) warnings[lang].push('email_subject_' + lang + ': ' + subj.length + ' characters (max 60).');
 }
 
+// Spanish versions of cities/inclusions come from the AI; numbers must survive translation
+const numBag = (arr) => (arr || []).map((x) => numsIn(x).join(',')).join('|');
+if ((copy.inclusions_es || []).length && numBag(copy.inclusions_es) !== numBag(cf.inclusions)) {
+  warnings.es.push('inclusions_es: numbers differ from the verified inclusions - check the Spanish translation.');
+}
+const cfFor = (lang) => lang === 'es'
+  ? { ...cf, inclusions: (copy.inclusions_es || []).length === (cf.inclusions || []).length ? copy.inclusions_es : cf.inclusions, cities: (copy.cities_es || []).length === (cf.cities || []).length ? copy.cities_es : cf.cities }
+  : cf;
+
 const settingsFor = (lang) => ({
   subject_line: copy['email_subject_' + lang],
   preview_text: copy['email_preview_' + lang],
@@ -110,7 +119,8 @@ return ['en', 'es'].map((lang) => ({
     lang,
     warnings: warnings[lang],
     campaign: { type: 'regular', recipients: { list_id: '8176e97349' }, settings: settingsFor(lang) },
-    html: buildEmail(cf, copy, lang, p.photo_url),
+    html: buildEmail(cfFor(lang), copy, lang, p.photo_url),
+    cf_lang: cfFor(lang),
     copy
   }
 }));

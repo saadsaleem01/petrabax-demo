@@ -9,5 +9,7 @@
   "graphic_headline_en": "text", "graphic_headline_es": "text",
   "graphic_subline_en": "text", "graphic_subline_es": "text",
   "carousel_en": [{ "title": "text", "text": "text" }],
-  "carousel_es": [{ "title": "text", "text": "text" }]
+  "carousel_es": [{ "title": "text", "text": "text" }],
+  "cities_es": ["Sevilla"],
+  "inclusions_es": ["11 noches en hoteles de 4 estrellas"]
 }

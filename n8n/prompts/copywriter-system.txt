@@ -19,3 +19,5 @@ FORMATS
 - email_body: 90-140 words, 2-3 short paragraphs, plain text. Paint the experience with 2-3 specific highlights from the itinerary/inclusions, then the from price and the book-by date. Do NOT list all prices (the email shows a price table) and do NOT list conditions (the footer does).
 - graphic_headline: max 6 words. graphic_subline: max 10 words.
 - carousel: exactly 4 slides, each {title: max 5 words, text: max 18 words}: 1 = the hook, 2 = route/highlights, 3 = what's included, 4 = price from + book-by date.
+- cities_es: the Spanish name of every city in the facts, same order and count (e.g. Seville = Sevilla, Lisbon = Lisboa).
+- inclusions_es: a faithful Spanish translation of every inclusion, same order and count, keeping every number unchanged.
