@@ -1,0 +1,44 @@
+{
+  "supplier": "Iberia Dreams DMC",
+  "tour_name": "Spain & Portugal Grand Tour",
+  "destination_countries": ["Spain", "Portugal"],
+  "cities": ["Madrid", "Lisbon"],
+  "duration": "12 days / 11 nights",
+  "currency": "USD",
+  "price_basis": "per person, land only",
+  "price_tiers": [
+    {
+      "room_type": "double",
+      "applies_to": "April and May departures",
+      "price": 2390,
+      "price_type": "promo",
+      "evidence": "April and May departures: $2,390 in double room"
+    }
+  ],
+  "departures": [
+    { "date": "2027-04-10", "evidence": "April 10" }
+  ],
+  "travel_start": "",
+  "travel_end": "",
+  "booking_deadline": "2027-01-31",
+  "booking_deadline_evidence": "Book by January 31, 2027",
+  "discounts": [
+    {
+      "description": "$100 per person off for 2 or more rooms",
+      "amount": "$100",
+      "condition": "bookings of 2 or more rooms on the same reservation",
+      "evidence": "Extra discount: $100 per person"
+    }
+  ],
+  "commission": { "rate": "12%", "notes": "on land price", "evidence": "Agent commission: 12% on the land price" },
+  "restrictions": ["New bookings only"],
+  "inclusions": ["11 nights in 4-star hotels"],
+  "exclusions": ["international flights"],
+  "single_supplement": "",
+  "promo_code": "",
+  "is_correction": false,
+  "correction_note": "",
+  "issues": [
+    { "severity": "medium", "message": "example issue" }
+  ]
+}
