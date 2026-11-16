@@ -18,6 +18,7 @@ PRICE TIERS (one entry per distinct money amount)
 DEPARTURES
 - One entry per specific departure date with year. evidence = verbatim fragment containing it.
 - Do NOT list departures the material says are cancelled.
+- travel_start / travel_end are only for a stated travel window ("between X and Y"). When specific departure dates are listed, leave them "" and do NOT report that as an issue.
 
 DISCOUNTS
 - Every discount or reduction (amount or %), with its condition and a verbatim evidence fragment. amount = as written (e.g. "$100" or "3%").
@@ -34,6 +35,6 @@ CORRECTIONS
 ISSUES (anything a marketer must check before publishing)
 - Two or more different prices for the SAME room type and SAME period = "high" ("Conflicting prices").
 - Conflicting dates = "high". Missing currency = "high".
-- Vague travel dates, missing booking deadline, "on request" items or anything ambiguous = "medium".
+- Vague travel dates (only a month or season and no specific departures), missing booking deadline, "on request" items or anything ambiguous = "medium".
 - Different prices for different room types or periods are NORMAL and are NOT conflicts.
 - Do not invent issues for clearly stated facts.
