@@ -13,7 +13,19 @@ const yellow = [...v.yellow];
 const changes = [];
 let version = 1;
 
-const tierKey = (t) => [t.room_type, t.applies_to, t.price_type || 'promo'].map((x) => String(x || '').toLowerCase().trim()).join(' | ');
+// Wording-tolerant keys: "Double room" = "double", "(brochure prices apply)" ignored, periods compared by month
+const nr = (s) => String(s || '').toLowerCase().replace(/\([^)]*\)/g, ' ').replace(/\b(rooms?|occupancy|habitaci[oó]n|prices?|apply|applies)\b/g, ' ').replace(/[^a-z0-9ñáéíóú]+/g, ' ').trim();
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const SEASONS = { spring: [3, 4, 5], summer: [6, 7, 8], autumn: [9, 10, 11], fall: [9, 10, 11], winter: [12, 1, 2] };
+const monthsKey = (s) => {
+  const t = String(s || '').toLowerCase();
+  const set = new Set();
+  MONTHS.forEach((m, k) => { if (new RegExp('\\b' + m + '[a-z]*\\b').test(t)) set.add(k + 1); });
+  Object.keys(SEASONS).forEach((w) => { if (t.includes(w)) SEASONS[w].forEach((x) => set.add(x)); });
+  return [...set].sort((a, b) => a - b).join(',');
+};
+const tierKey = (t) => [nr(t.room_type), nr(t.applies_to), t.price_type || 'promo'].join(' | ');
+const periodKey = (t) => [nr(t.room_type), monthsKey(t.applies_to), t.price_type || 'promo'].join(' | ');
 const tierName = (t) => [t.room_type, t.applies_to].filter(Boolean).join(' / ') + (t.price_type && t.price_type !== 'promo' ? ' (' + t.price_type + ')' : '');
 const money = (n) => (cf.currency === 'USD' || !cf.currency ? '$' : cf.currency + ' ') + Number(n).toLocaleString('en-US');
 
@@ -23,7 +35,7 @@ if (prev) {
   try { old = JSON.parse(prev.offer_json); } catch (e) { old = {}; }
 
   // Match tiers: exact key first, then by room type + price type when the AI reworded "applies_to"
-  const baseKey = (t) => [t.room_type, t.price_type || 'promo'].map((x) => String(x || '').toLowerCase().trim()).join(' | ');
+  const baseKey = (t) => [nr(t.room_type), t.price_type || 'promo'].join(' | ');
   const oldList = (old.price_tiers || []).slice();
   const newList = (f.price_tiers || []).slice();
   const pairs = [];
@@ -31,10 +43,14 @@ if (prev) {
     const i = oldList.findIndex((o) => tierKey(o) === tierKey(n));
     if (i >= 0) { pairs.push([oldList[i], n]); oldList.splice(i, 1); newList.splice(newList.indexOf(n), 1); }
   }
-  for (const n of newList.slice()) {
-    const sameOld = oldList.filter((o) => baseKey(o) === baseKey(n));
-    const sameNew = newList.filter((x) => baseKey(x) === baseKey(n));
-    if (sameOld.length === 1 && sameNew.length === 1) { pairs.push([sameOld[0], n]); oldList.splice(oldList.indexOf(sameOld[0]), 1); newList.splice(newList.indexOf(n), 1); }
+  // Then by room + travel months (e.g. "June departures" = "departures in June"), then by room alone
+  for (const keyFn of [periodKey, baseKey]) {
+    for (const n of newList.slice()) {
+      if (keyFn === periodKey && !monthsKey(n.applies_to)) continue;
+      const sameOld = oldList.filter((o) => keyFn(o) === keyFn(n));
+      const sameNew = newList.filter((x) => keyFn(x) === keyFn(n));
+      if (sameOld.length === 1 && sameNew.length === 1) { pairs.push([sameOld[0], n]); oldList.splice(oldList.indexOf(sameOld[0]), 1); newList.splice(newList.indexOf(n), 1); }
+    }
   }
   pairs.forEach((p) => { if (Number(p[0].price) !== Number(p[1].price)) changes.push('Price changed: ' + tierName(p[1]) + ' ' + money(p[0].price) + ' → ' + money(p[1].price)); });
   newList.forEach((t) => changes.push('New price: ' + tierName(t) + ' ' + money(t.price)));
