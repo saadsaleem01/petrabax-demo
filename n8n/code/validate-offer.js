@@ -148,6 +148,9 @@ for (const i of (f.issues || [])) {
   if (!currencyOk && /currenc/i.test(m)) continue;
   if (/conflict/i.test(m) && /price/i.test(m) && red.some((r) => /Conflicting prices/.test(r))) continue;
   if (/expire|passed/i.test(m) && red.some((r) => /already passed/.test(r))) continue;
+  // Low-severity notes and remarks about the AI's own evidence quotes are informational:
+  // the quotes are already verified word-for-word above, so they must not downgrade the promo.
+  if (i.severity === 'low' || /evidence|quote|fragment/i.test(m)) { checks.push({ label: 'AI note', status: 'ok', msg: m }); continue; }
   check('AI review flag', false, i.severity === 'high' ? 'red' : 'yellow', m);
 }
 

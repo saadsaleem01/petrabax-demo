@@ -1,9 +1,9 @@
 # Petrabax demo script (30–40 min)
 
-Follows Marcos's six points in his order. Image quota needed live: ~11 (one Generate = 10, one headline rebuild = 1).
+Follows Marcos's six points, but run **6 (publishing) before 5 (supplier correction)**: a correction pulls back every draft, so publish first, then show the correction pulling content back. Image quota needed live: ~11 (one Generate = 10, one headline rebuild = 1).
 
 ## Before the call (15 min before)
-1. Ask Claude to **reset the demo**: clears Airtable + Mailchimp drafts and loads a clean **v1** of the Spain & Portugal promo **without content** (you generate it live, ~10 images).
+1. Ask Claude to **reset the demo**: clears Airtable + Mailchimp drafts and leaves Airtable **empty**. Step 1 creates the Spain & Portugal promo as a clean **v1** (don't preload it, or step 1 shows it as a duplicate v2). You generate content live (~10 images).
 2. Open these tabs, in this order:
    1. **Intake form:** https://saadullahsaleem.app.n8n.cloud/form/afd86223-bcde-4e0c-b9b3-587bd018ef3a
    2. **Airtable → Interfaces → Petrabax Review**
