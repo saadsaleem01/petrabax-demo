@@ -18,6 +18,16 @@ const numsIn = (s) => (String(s || '').match(/\d[\d.,]*/g) || [])
 const srcNums = numsIn(source);
 const inSource = (quote) => !!quote && nsrc.includes(norm(quote));
 const isoDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || ''));
+const MONTHS_EN = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+const MONTHS_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const dateMentioned = (iso) => {
+  const [, m, d] = String(iso || '').split('-').map(Number);
+  if (!m || !d) return false;
+  if (nsrc.includes(iso)) return true;
+  const names = [MONTHS_EN[m - 1], MONTHS_EN[m - 1].slice(0, 3), MONTHS_ES[m - 1], MONTHS_ES[m - 1].slice(0, 3)];
+  return names.some((n) => new RegExp('\\b' + n + '\\.?\\s+' + d + '(st|nd|rd|th)?\\b').test(nsrc) ||
+    new RegExp('\\b' + d + '(st|nd|rd|th)?\\s+(of\\s+|de\\s+)?' + n + '\\b').test(nsrc));
+};
 
 const red = [];
 const yellow = [];
@@ -54,19 +64,37 @@ for (const t of tiers) {
   }
 }
 
-// Same tier, different prices = conflict
-const groups = {};
-for (const t of tiers) {
-  const key = norm([t.room_type, t.applies_to, t.price_type || 'promo'].join('|'));
-  groups[key] = groups[key] || { name: tierLabel(t), prices: [] };
-  const p = Number(t.price) || 0;
-  if (p && !groups[key].prices.includes(p)) groups[key].prices.push(p);
+// Same room type + overlapping travel period + different prices = conflict.
+// Periods come from month/season words in "applies to"; no period stated = whole offer (overlaps everything).
+const SEASONS = { spring: [3, 4, 5], summer: [6, 7, 8], autumn: [9, 10, 11], fall: [9, 10, 11], winter: [12, 1, 2], primavera: [3, 4, 5], verano: [6, 7, 8], 'otoño': [9, 10, 11], invierno: [12, 1, 2] };
+const monthsOf = (text) => {
+  const s = norm(text);
+  const set = new Set();
+  MONTHS_EN.forEach((m, k) => { if (new RegExp('\\b(' + m + '|' + m.slice(0, 3) + ')\\b').test(s)) set.add(k + 1); });
+  MONTHS_ES.forEach((m, k) => { if (new RegExp('\\b' + m + '\\b').test(s)) set.add(k + 1); });
+  Object.keys(SEASONS).forEach((w) => { if (s.includes(w)) SEASONS[w].forEach((x) => set.add(x)); });
+  return set.size ? set : null;
+};
+const overlaps = (a, b) => !a || !b || [...a].some((x) => b.has(x));
+const roomKey = (t) => norm(t.room_type).replace(/\b(room|occupancy|habitaci[oó]n)\b/g, '').trim();
+const conflictSeen = new Set();
+for (let a = 0; a < tiers.length; a++) {
+  for (let b = a + 1; b < tiers.length; b++) {
+    const x = tiers[a], y = tiers[b];
+    const px = Number(x.price) || 0, py = Number(y.price) || 0;
+    if (!px || !py || px === py) continue;
+    if ((x.price_type || 'promo') !== (y.price_type || 'promo') || roomKey(x) !== roomKey(y)) continue;
+    const same = norm(x.applies_to) === norm(y.applies_to);
+    if (!same && !overlaps(monthsOf(x.applies_to), monthsOf(y.applies_to))) continue;
+    const key = roomKey(x) + '|' + [px, py].sort().join('|');
+    if (conflictSeen.has(key)) continue;
+    conflictSeen.add(key);
+    const name = (x.room_type || 'room') + (same && x.applies_to ? ' / ' + x.applies_to : '');
+    check('No conflicting prices: ' + name, false, 'red',
+      'Conflicting prices for "' + name + '": ' + px + ' vs ' + py + ' for the same travel period - confirm with the supplier.');
+  }
 }
-for (const k of Object.keys(groups)) {
-  const g = groups[k];
-  check('No conflicting prices: ' + g.name, g.prices.length <= 1, 'red',
-    'Conflicting prices for "' + g.name + '": ' + g.prices.join(' vs ') + ' - confirm with the supplier.');
-}
+if (!conflictSeen.size) check('No conflicting prices', true, 'red', '');
 
 // Any money amount in the source that the AI did not capture anywhere?
 const captured = new Set();
@@ -93,7 +121,7 @@ if (f.booking_deadline) {
   check('Booking deadline still open', f.booking_deadline >= today, 'red',
     'Booking deadline ' + f.booking_deadline + ' has already passed (today is ' + today + ') - promo is expired.');
   if (f.booking_deadline_evidence) {
-    check('Source quote verified: booking deadline', inSource(f.booking_deadline_evidence), 'red',
+    check('Source quote verified: booking deadline', inSource(f.booking_deadline_evidence) || dateMentioned(f.booking_deadline), 'red',
       'AI quote for the booking deadline was not found word-for-word in the source.');
   }
 } else {
@@ -107,9 +135,10 @@ for (const d of deps) {
   if (!isoDate(d.date)) { check('Departure date valid', false, 'yellow', 'Departure "' + d.date + '" is not a valid date.'); continue; }
   depDates.push(d.date);
   if (d.date < today) check('Departure in the future: ' + d.date, false, 'yellow', 'Departure ' + d.date + ' is in the past and will be left out.');
-  if (d.evidence && !inSource(d.evidence)) {
-    check('Source quote verified: departure ' + d.date, false, 'red', 'AI quote for departure ' + d.date + ' was not found in the source.');
-  }
+  // Verify the date itself appears in the supplier text (e.g. "May 8", "8 de mayo", "2027-05-08"),
+  // so a correct date is not blocked just because the AI stitched its quote together.
+  check('Departure date found in source: ' + d.date, inSource(d.evidence) || dateMentioned(d.date), 'red',
+    'Departure ' + d.date + ' does not appear in the supplier material (possible hallucination).');
 }
 depDates.sort();
 const futureDeps = depDates.filter((d) => d >= today);
