@@ -3,7 +3,7 @@
 Follows Marcos's six points in his order. Image quota needed live: ~11 (one Generate = 10, one headline rebuild = 1).
 
 ## Before the call (15 min before)
-1. Ask Claude to **reset the demo** (clears Airtable, loads a clean v1 of the Spain & Portugal promo with content).
+1. Ask Claude to **reset the demo**: clears Airtable + Mailchimp drafts and loads a clean **v1** of the Spain & Portugal promo **without content** (you generate it live, ~10 images).
 2. Open these tabs, in this order:
    1. **Intake form:** https://saadullahsaleem.app.n8n.cloud/form/afd86223-bcde-4e0c-b9b3-587bd018ef3a
    2. **Airtable → Interfaces → Petrabax Review**
@@ -37,7 +37,7 @@ Follows Marcos's six points in his order. Image quota needed live: ~11 (one Gene
 - **Tab 1 (form):** choose **"Spain & Portugal Grand Tour - Supplier correction"** → Process.
   - Result: **version 2**, *"What the supplier changed"*: June prices $2,490→$2,540 and $3,290→$3,340, **June 19 departure cancelled**, deadline Jan 31→Feb 15.
 - **Airtable:** the promotion now shows **Needs check / version 2**; **all its drafts switched to "Pulled back"** with a note. **Change Log** shows *Created → Edited → Supplier correction*.
-- Expired: recall the Portugal promo blocked at step 1 (and the daily expiry check for already-scheduled posts).
+- Expired: recall the Portugal promo blocked at step 1. Then open **Expiry check**: https://saadullahsaleem.app.n8n.cloud/webhook/petrabax-expiry. It runs every morning, pulls back drafts and approved posts past their deadline, and **cancels already-scheduled posts** in Ayrshare.
 
 ## 6. Publishing & reporting (4 min)
 - In **Content Review**, set **Facebook ES** (or any approved draft) to **Approved**.
