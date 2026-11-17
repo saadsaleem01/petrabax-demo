@@ -38,9 +38,14 @@ const numBag = (arr) => (arr || []).map((x) => numsIn(x).join(',')).join('|');
 if ((copy.inclusions_es || []).length && numBag(copy.inclusions_es) !== numBag(cf.inclusions)) {
   warnings.es.push('inclusions_es: numbers differ from the verified inclusions - check the Spanish translation.');
 }
-const cfFor = (lang) => lang === 'es'
-  ? { ...cf, inclusions: (copy.inclusions_es || []).length === (cf.inclusions || []).length ? copy.inclusions_es : cf.inclusions, cities: (copy.cities_es || []).length === (cf.cities || []).length ? copy.cities_es : cf.cities }
-  : cf;
+const capFirst = (x) => String(x || '').replace(/^\s*\S/, (c) => c.toUpperCase());
+const cfFor = (lang) => {
+  const out = lang === 'es'
+    ? { ...cf, inclusions: (copy.inclusions_es || []).length === (cf.inclusions || []).length ? copy.inclusions_es : cf.inclusions, cities: (copy.cities_es || []).length === (cf.cities || []).length ? copy.cities_es : cf.cities, tour_name: copy.tour_name_es || cf.tour_name }
+    : { ...cf };
+  out.inclusions = (out.inclusions || []).map(capFirst);
+  return out;
+};
 
 const settingsFor = (lang) => ({
   subject_line: copy['email_subject_' + lang],

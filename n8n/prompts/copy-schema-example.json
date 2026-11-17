@@ -10,6 +10,7 @@
   "graphic_subline_en": "text", "graphic_subline_es": "text",
   "carousel_en": [{ "title": "text", "text": "text" }],
   "carousel_es": [{ "title": "text", "text": "text" }],
+  "tour_name_es": "Gran Tour de España y Portugal",
   "cities_es": ["Sevilla"],
   "inclusions_es": ["11 noches en hoteles de 4 estrellas"]
 }
