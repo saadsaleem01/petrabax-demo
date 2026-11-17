@@ -40,8 +40,12 @@ Follows Marcos's six points in his order. Image quota needed live: ~11 (one Gene
 - Expired: recall the Portugal promo blocked at step 1 (and the daily expiry check for already-scheduled posts).
 
 ## 6. Publishing & reporting (4 min)
-- Approved items → scheduled to Facebook / Instagram / LinkedIn; weekly report of reach, engagement and Mailchimp opens/clicks.
-- (Show the live publishing step if test pages / Ayrshare are connected; otherwise walk through it on the n8n canvas and the report sample.)
+- In **Content Review**, set **Facebook ES** (or any approved draft) to **Approved**.
+- Open **Publish now:** https://saadullahsaleem.app.n8n.cloud/webhook/petrabax-publish
+  - Shows ✅ Published + the live link; Airtable status becomes **Published** with the post link. Open the link: the post with the branded graphic on the Facebook page.
+  - Say: *"Before posting, it re-checks the booking deadline. Expired promos are pulled back instead. In production this runs every 15 minutes, and 'Scheduled for' schedules a future post."*
+- Open **Report now:** https://saadullahsaleem.app.n8n.cloud/webhook/petrabax-report
+  - Posts published, reach, engagement and Mailchimp opens/clicks; also saved in Airtable › **Reports** and generated every Monday at 8am.
 
 ## Close (3 min)
 - Everything runs in **Petrabax's own n8n, Airtable and Mailchimp**: they own it.
